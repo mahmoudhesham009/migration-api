@@ -1,0 +1,68 @@
+@GetMapping(value="/printing",produces= MediaType.APPLICATION_PDF_VALUE)
+    public  @ResponseBody byte[]  print(@RequestParam("filterParam") String filterParam) {
+
+        try {
+            String path=insertNewReport();
+            FileInputStream fis= new FileInputStream(new File(path));
+            byte[] targetArray = new byte[fis.available()];
+            fis.read(targetArray);
+            return targetArray;
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private String insertNewReport(Date dfrom, Date dTo) throws FileNotFoundException {
+        PdfDocument pdf = new PdfDocument(new PdfWriter("products.pdf"));
+        Document document = new Document(pdf);
+
+        Table table = new Table(UnitValue.createPercentArray(50)).setFixedLayout();
+        table.setHorizontalAlignment(HorizontalAlignment.CENTER);
+        table.setTextAlignment(TextAlignment.CENTER);
+        table.setFontSize(10);
+
+        // Add table headers
+        table.addCell(new Cell().add(new Paragraph("A")).setFontSize(12).setBold());
+        table.addCell(new Cell().add(new Paragraph("B")).setFontSize(12).setBold());
+        table.addCell(new Cell().add(new Paragraph("C")).setFontSize(12).setBold());
+
+        // Add product data
+        for (Product product : products) {
+            Row row = new Row();
+
+            row.addCell(new Cell(String.valueOf(product.getId())));
+            row.addCell(new Cell(product.getName()));
+            row.addCell(new Cell(String.format("%.2f", product.getPrice())));
+
+            table.addRow(row);
+        }
+
+        document.add(table);
+        document.close();
+        return pdf;
+    }
+
+
+
+<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itextpdf</artifactId>
+			<version>5.5.13.3</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.itextpdf/layout -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>layout</artifactId>
+			<version>8.0.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+			<version>3.0.0-RC1</version>
+		</dependency>
